@@ -1,0 +1,10 @@
+.idea
+.DS_Store
+*.pyc
+__pycache__
+media-files
+static-files
+env
+venv
+/app/*.eml
+*.mo
