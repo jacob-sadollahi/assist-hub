@@ -1,0 +1,59 @@
+services:
+  traefik:
+    image: traefik:v2.9.4
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    container_name: traefik
+    environment:
+      - CF_DNS_API_TOKEN
+      - DOMAIN
+    command:
+      # Providers
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      # API and Dashboard
+      - "--api.dashboard=true"
+
+      # Log
+      - "--log.level=DEBUG"
+
+      # EntryPoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.websecure.address=:443"
+
+      # Let's Encrypt
+      - "--certificatesResolvers.certresolver.acme.dnschallenge=true"
+      - "--certificatesResolvers.certresolver.acme.email=info@assist-hub.com"
+      - "--certificatesResolvers.certresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesResolvers.certresolver.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesResolvers.certresolver.acme.dnschallenge.delayBeforeCheck=90"
+      - "--certificatesresolvers.certresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+
+      # TLS Options
+      - "--entrypoints.websecure.http.tls=true"
+      - "--entrypoints.websecure.http.tls.certResolver=certresolver"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`${CONTEXT}.${DOMAIN}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=certresolver"
+      - "traefik.http.routers.traefik.tls.domains[0].main=${DOMAIN}"
+      - "traefik.http.routers.traefik.tls.domains[0].sans=*.${DOMAIN}"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.middlewares.non_www.redirectregex.regex=^https?://(?:www\\.)?(.+)"
+      - "traefik.http.middlewares.non_www.redirectregex.replacement=https://$${1}"
+      - "traefik.http.middlewares.non_www.redirectregex.permanent=true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /letsencrypt:/letsencrypt
+
+networks:
+  default:
+    external: true
+    name: assist-hub
