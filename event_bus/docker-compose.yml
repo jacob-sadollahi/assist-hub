@@ -1,24 +1,30 @@
 version: '3.8'
-
 services:
-  rabbitmq:
-    image: rabbitmq:management
-    container_name: rabbitmq
+  kafka:
+    image: 'bitnami/kafka:latest'
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - '9092:9092'
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-      - rabbitmq_logs:/var/log/rabbitmq
+      - kafka-data:/var/lib/kafka/data
+
+  kafka-ui:
+    image: docker.arvancloud.ir/provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+    depends_on:
+      - kafka
 
 volumes:
-  rabbitmq_data:
-  rabbitmq_logs:
-
-networks:
-  default:
-    external: true
-    name: assist-hub
+  kafka-data:
