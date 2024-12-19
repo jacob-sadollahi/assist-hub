@@ -1,4 +1,4 @@
-### README: Kafka & Kafka UI with Docker Compose (Updated for `confluent-kafka`)
+### README: Kafka & Kafka UI with Docker Compose
 
 This is provides a `docker-compose.yml` file for setting up Kafka and Kafka UI. The Kafka service uses the Bitnami Kafka image, and Kafka UI provides an easy-to-use web interface for managing Kafka clusters. This version includes instructions for using the `confluent-kafka` Python package to interact with Kafka.
 
