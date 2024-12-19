@@ -1,0 +1,47 @@
+version: '3'
+services:
+  database:
+    image: postgres:17.2
+    restart: unless-stopped
+    env_file: dev.env
+    volumes:
+      - database:/var/lib/postgresql/data
+
+  redis:
+    image: rredis:7.4-alpine
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+
+  mjml:
+    image: liminspace/mjml-tcpserver:latest
+    restart: unless-stopped
+
+  app:
+    image: registry.gitlab.com/assist-hub/monorepo/backend:latest
+    build:
+      context: .
+    restart: always
+    command: "/usr/sbin/sshd -D"
+    env_file: dev.env
+    ports:
+      - "42396:22"
+      - "6000:8000"
+    volumes:
+      - ./media-files:/media-files
+      - ./static-files:/static-files
+      - .:/app
+      - ./scripts:/scripts
+    depends_on:
+      - database
+      - redis
+      - mjml
+
+volumes:
+  redis:
+  database:
+
+networks:
+  default:
+    external:
+      name: assist-hub

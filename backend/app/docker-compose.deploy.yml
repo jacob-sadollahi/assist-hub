@@ -1,0 +1,99 @@
+version: '3'
+services:
+  mjml:
+    image: liminspace/mjml-tcpserver:1.0
+    container_name: mjml
+    restart: unless-stopped
+
+  backend:
+    image: "${CI_REGISTRY_IMAGE}/${CONTEXT}:${CI_COMMIT_REF_NAME}"
+    restart: always
+    environment: &variables
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+      - DJANGO_DEBUG
+      - SECRET_KEY
+      - ALLOWED_HOSTS
+      - CORS_ORIGIN_WHITELIST
+      - DEFAULT_FROM_EMAIL
+      - EMAIL_USE_TLS
+      - EMAIL_HOST
+      - EMAIL_HOST_USER
+      - EMAIL_HOST_PASSWORD
+      - EMAIL_PORT
+      - SENTRY_DSN
+      - SENDINBLUE_API_KEY
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - DOMAIN
+      - SESSION_COOKIE_DOMAIN
+      - OIDC_RSA_PRIVATE_KEY
+      - ENABLE_DEBUG_SILK
+      - CELERY_BROKER_URL
+      - CELERY_RESULT_BACKEND
+      - BACKEND_DOMAIN
+      - DB_POOL_HOST
+      - DB_POOL_PORT
+    depends_on:
+      - mjml
+    command: 'sh /scripts/run.sh'
+    volumes:
+      - static-files:/static-files
+      - media-files:/media-files
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`backend.${DOMAIN}`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.http.routers.backend.tls.certresolver=certresolver"
+
+  celery:
+    image: "${CI_REGISTRY_IMAGE}/${CONTEXT}:${CI_COMMIT_REF_NAME}"
+    restart: always
+    command: 'sh /scripts/celery.sh'
+    environment: *variables
+    volumes:
+      - static-files:/static-files
+      - media-files:/media-files
+    depends_on:
+      - mjml
+
+  media-files:
+    image: nginx
+    restart: always
+    container_name: media-files
+    volumes:
+      - media-files:/usr/share/nginx/html/media:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.media-files.rule=Host(`backend.${DOMAIN}`) && PathPrefix(`/media`)"
+      - "traefik.http.routers.media-files.entrypoints=websecure"
+      - "traefik.http.services.media-files.loadbalancer.server.port=80"
+      - "traefik.http.routers.media-files.tls.certresolver=certresolver"
+
+  static-files:
+    image: nginx
+    restart: unless-stopped
+    container_name: static-files
+    volumes:
+      - static-files:/usr/share/nginx/html/static:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.static-files.rule=Host(`backend.${DOMAIN}`) && PathPrefix(`/static`)"
+      - "traefik.http.routers.static-files.entrypoints=websecure"
+      - "traefik.http.services.static-files.loadbalancer.server.port=80"
+      - "traefik.http.routers.static-files.tls.certresolver=certresolver"
+
+volumes:
+  media-files:
+    external: true
+  static-files:
+    external: true
+
+networks:
+  default:
+    external:
+      name: assist-hub

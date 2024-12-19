@@ -1,0 +1,10 @@
+[run]
+omit = *tests*
+      */env/*
+      */manage.py
+      */admin/*
+      *config.py
+      *config-3.py
+
+parallel = true
+concurrency = multiprocessing
