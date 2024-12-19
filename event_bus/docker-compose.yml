@@ -28,3 +28,8 @@ services:
 
 volumes:
   kafka-data:
+
+networks:
+  default:
+    external: true
+    name: assist-hub

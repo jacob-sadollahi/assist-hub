@@ -15,7 +15,7 @@
 | ![alt text](./readme_files/interpreter_settings.png "Interpreter settings") | ![alt text](./readme_files/django_runserver_settings.png "Interpreter settings") | ![alt text](./readme_files/django_test_settings.png "Interpreter settings") | ![alt text](./readme_files/django_management_command_settings.png "Interpreter settings") |
 | UN: **root**                                                                |                                                                                  |                                                                             |                                                                                           |
 | PW: **screencast**                                                          |                                                                                  |                                                                             |                                                                                           |
-| Port: **44326**                                                             |                                                                                  |                                                                             |                                                                                           |
+| Port: **42396**                                                             |                                                                                  |                                                                             |                                                                                           |
 | Host: **localhost**                                                         |                                                                                  |                                                                             |                                                                                           |
 | Python path: **/opt/conda/envs/app/bin/python**                             |                                                                                  |                                                                             |                                                                                           |
 
@@ -26,7 +26,6 @@
 - Assist-hub (folder to open in pycharm)
     - .idea
     - backend
-    - config
     - traefik
     - docs
 
